@@ -73,7 +73,7 @@ jobs:
 
   # ── Approval lock — PR-based to respect branch protection ──────────────────
   approve-and-lock:
-    name: Lock UI
+    name: Approve UI
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/minfy-approve'))
