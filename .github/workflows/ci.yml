@@ -3,28 +3,20 @@ name: CI
 on:
   push:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'index.html'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'vite.config.*'
-      - 'tsconfig*.json'
-      - 'vitest.config.*'
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.env.example'
+      - '.gitignore'
+      - 'LICENSE'
   pull_request:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'index.html'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'vite.config.*'
-      - 'tsconfig*.json'
-      - 'vitest.config.*'
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.env.example'
+      - '.gitignore'
+      - 'LICENSE'
 
 jobs:
   ci:
