@@ -13,7 +13,6 @@ on:
       - 'vite.config.*'
       - 'tsconfig*.json'
       - 'vitest.config.*'
-      - '.github/workflows/ci.yml'
   pull_request:
     branches: [main]
     paths:
@@ -26,7 +25,6 @@ on:
       - 'vite.config.*'
       - 'tsconfig*.json'
       - 'vitest.config.*'
-      - '.github/workflows/ci.yml'
 
 jobs:
   ci:
