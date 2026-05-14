@@ -1,7 +1,7 @@
 name: UI Approval Gate
 
 on:
-  # Manual trigger — used by the customer/PM to formally approve the UI
+  # Manual trigger — customer/PM formally approves the UI
   workflow_dispatch:
     inputs:
       approver_email:
@@ -19,7 +19,7 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened]
 
-  # Issue comment trigger — /minfy-approve in a PR comment triggers the lock
+  # Issue comment trigger — /minfy-approve in a PR comment
   issue_comment:
     types: [created]
 
@@ -71,7 +71,7 @@ jobs:
               ].join('\n')
             })
 
-  # ── Approval lock (manual dispatch or /minfy-approve comment) ──────────────
+  # ── Approval lock — PR-based to respect branch protection ──────────────────
   approve-and-lock:
     name: Lock UI
     if: |
@@ -80,8 +80,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Resolve approver
         id: approver
@@ -94,8 +92,14 @@ jobs:
             echo "pages_url=https://jaya-kranthi.github.io/twa-frontend/" >> $GITHUB_OUTPUT
           fi
 
-      - name: Write .ui-locked
+      - name: Create lock branch and commit .ui-locked
+        id: lock
         run: |
+          BRANCH="ui-lock/$(date -u +%Y-%m-%d-%H%M%S)"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
           mkdir -p docs
           cat > docs/.ui-locked <<EOF
           {
@@ -107,11 +111,18 @@ jobs:
             "commit": "${{ github.sha }}"
           }
           EOF
-
-      - name: Commit lock file
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/.ui-locked
           git commit -m "chore: lock UI — approved by ${{ steps.approver.outputs.email }}"
-          git push
+          git push origin "$BRANCH"
+
+      - name: Open PR and auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(gh pr create \
+            --title "chore: lock UI — approved by ${{ steps.approver.outputs.email }}" \
+            --body "UI formally approved by **${{ steps.approver.outputs.email }}** via the UI Approval Gate workflow. Auto-merging lock file." \
+            --base main \
+            --head "${{ steps.lock.outputs.branch }}")
+          echo "PR: $PR_URL"
+          gh pr merge "$PR_URL" --auto --squash
