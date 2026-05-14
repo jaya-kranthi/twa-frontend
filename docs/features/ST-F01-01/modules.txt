@@ -1,0 +1,6 @@
+src/pages/LoginPage.tsx                (new)
+src/modules/auth/LoginForm.tsx         (new)
+src/modules/auth/MfaChallengeModal.tsx (new — shell)
+src/shared/auth.ts                     (new)
+src/store/auth.store.ts                (new)
+src/mocks/handlers/auth.ts             (new)

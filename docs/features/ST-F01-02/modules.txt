@@ -1,0 +1,3 @@
+src/modules/auth/MfaChallengeModal.tsx (extend)
+src/modules/auth/TotpInput.tsx         (new)
+src/mocks/handlers/auth.ts             (extend)

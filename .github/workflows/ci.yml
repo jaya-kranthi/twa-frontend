@@ -3,8 +3,30 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'vite.config.*'
+      - 'tsconfig*.json'
+      - 'vitest.config.*'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'vite.config.*'
+      - 'tsconfig*.json'
+      - 'vitest.config.*'
+      - '.github/workflows/ci.yml'
 
 jobs:
   ci:
@@ -14,22 +36,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
-      - name: Install dependencies
-        run: npm ci
+      - run: pnpm install --frozen-lockfile
 
-      - name: Typecheck
-        run: npm run typecheck
+      - run: pnpm typecheck
 
-      - name: Lint
-        run: npm run lint
+      - run: pnpm lint
 
-      - name: Test
-        run: npm run test:coverage
+      - run: pnpm test:coverage
 
-      - name: Build
-        run: npm run build
+      - run: pnpm build
