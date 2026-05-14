@@ -21,7 +21,7 @@
     "base_url": "https://jaya-kranthi.github.io/twa-frontend/"
   },
   "deploy_urls": {
-    "dev": null,
+    "dev": "https://jaya-kranthi.github.io/twa-frontend/",
     "staging": null,
     "prod": null
   },
