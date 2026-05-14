@@ -1,0 +1,44 @@
+name: UI Approval Gate
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  ui-approve:
+    name: UI approval required
+    runs-on: ubuntu-latest
+    # This check must be manually approved by a reviewer before merge.
+    # Set as a required status check in branch protection rules.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build preview
+        run: npm run build
+
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-preview-${{ github.event.pull_request.number }}
+          path: dist
+          retention-days: 7
+
+      - name: Post preview instructions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## UI Preview Ready\n\nDownload the \`ui-preview-${{ github.event.pull_request.number }}\` artifact from this run to review the build.\n\nA reviewer must approve this PR before it can be merged.`
+            })

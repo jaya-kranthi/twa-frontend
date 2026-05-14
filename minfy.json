@@ -1,0 +1,38 @@
+{
+  "project": "twa-marketplace",
+  "repo": "twa-frontend",
+  "kind": "frontend",
+  "template": "vite-react",
+  "version": "0.1.0",
+  "created_at": "2026-05-14",
+  "stack": {
+    "framework": "react",
+    "bundler": "vite",
+    "language": "typescript",
+    "design_system": "shadcn/ui + tailwindcss@4",
+    "state": ["tanstack-query", "zustand"],
+    "forms": "formik + yup",
+    "auth": "cognito-custom",
+    "testing": "vitest + react-testing-library",
+    "mocking": "msw@2"
+  },
+  "deploy": {
+    "target": "github-pages",
+    "base_url": "https://jaya-kranthi.github.io/twa-frontend/"
+  },
+  "deploy_urls": {
+    "dev": null,
+    "staging": null,
+    "prod": null
+  },
+  "coverage_thresholds": {
+    "lines": 0,
+    "functions": 0,
+    "branches": 0,
+    "statements": 0
+  },
+  "scm": {
+    "platform": "github",
+    "repo_url": "https://github.com/jaya-kranthi/twa-frontend.git"
+  }
+}
