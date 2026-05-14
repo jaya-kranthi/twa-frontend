@@ -1,16 +1,38 @@
 name: UI Approval Gate
 
 on:
+  # Manual trigger — used by the customer/PM to formally approve the UI
+  workflow_dispatch:
+    inputs:
+      approver_email:
+        description: "Approver email address (recorded in .ui-locked)"
+        required: true
+        type: string
+      pages_url:
+        description: "GitHub Pages URL to reference in the lock record"
+        required: false
+        default: "https://jaya-kranthi.github.io/twa-frontend/"
+        type: string
+
+  # PR trigger — builds a preview artifact on every PR to main
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
 
+  # Issue comment trigger — /minfy-approve in a PR comment triggers the lock
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
-  ui-approve:
-    name: UI approval required
+  # ── PR preview (runs on every PR) ──────────────────────────────────────────
+  pr-preview:
+    name: Build PR preview
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    # This check must be manually approved by a reviewer before merge.
-    # Set as a required status check in branch protection rules.
     steps:
       - uses: actions/checkout@v4
 
@@ -22,17 +44,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build preview
+      - name: Build
         run: npm run build
 
       - name: Upload preview artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ui-preview-${{ github.event.pull_request.number }}
+          name: ui-preview-pr-${{ github.event.pull_request.number }}
           path: dist
           retention-days: 7
 
-      - name: Post preview instructions
+      - name: Post preview comment
         uses: actions/github-script@v7
         with:
           script: |
@@ -40,5 +62,56 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## UI Preview Ready\n\nDownload the \`ui-preview-${{ github.event.pull_request.number }}\` artifact from this run to review the build.\n\nA reviewer must approve this PR before it can be merged.`
+              body: [
+                '## UI Preview Ready',
+                '',
+                `Download the \`ui-preview-pr-${{ github.event.pull_request.number }}\` artifact to review.`,
+                '',
+                'Once approved, trigger the **UI Approval Gate** workflow manually with your email to lock the UI.'
+              ].join('\n')
             })
+
+  # ── Approval lock (manual dispatch or /minfy-approve comment) ──────────────
+  approve-and-lock:
+    name: Lock UI
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/minfy-approve'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve approver
+        id: approver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "email=${{ inputs.approver_email }}" >> $GITHUB_OUTPUT
+            echo "pages_url=${{ inputs.pages_url }}" >> $GITHUB_OUTPUT
+          else
+            echo "email=${{ github.event.comment.user.login }}@github" >> $GITHUB_OUTPUT
+            echo "pages_url=https://jaya-kranthi.github.io/twa-frontend/" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Write .ui-locked
+        run: |
+          mkdir -p docs
+          cat > docs/.ui-locked <<EOF
+          {
+            "locked_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "approver": "${{ steps.approver.outputs.email }}",
+            "actor": "${{ github.actor }}",
+            "pages_url": "${{ steps.approver.outputs.pages_url }}",
+            "mode": "ci",
+            "commit": "${{ github.sha }}"
+          }
+          EOF
+
+      - name: Commit lock file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/.ui-locked
+          git commit -m "chore: lock UI — approved by ${{ steps.approver.outputs.email }}"
+          git push
