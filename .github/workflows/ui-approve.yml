@@ -129,19 +129,19 @@ jobs:
           gh pr merge "$PR_URL" --admin --squash
 
           # Notify team to run tech-spec next
+          ISSUE_BODY=$(cat <<'BODY'
+## UI Approved
+
+UI has been locked. The next step is:
+
+```
+/minfy:minfy-tech-spec-writer
+```
+
+Run this in the project root to generate the technical specification and unlock backend/infra/worker repo scaffolding.
+BODY
+)
           gh issue create \
             --title "UI locked — run /minfy:minfy-tech-spec-writer to continue" \
-            --body "## UI Approved ✓
-
-**Approver:** ${{ steps.approver.outputs.email }}
-**Preview:** ${{ steps.approver.outputs.pages_url }}
-**Locked at:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
-
-\`docs/.ui-locked\` has been committed to \`main\`. The next step is:
-
-\`\`\`
-/minfy:minfy-tech-spec-writer
-\`\`\`
-
-Run this in the project root to generate the technical specification and unlock backend/infra/worker repo scaffolding." \
+            --body "$ISSUE_BODY" \
             --label "minfy-next-step" 2>/dev/null || true
