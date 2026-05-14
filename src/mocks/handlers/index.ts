@@ -32,4 +32,8 @@ export const handlers = [
       pageSize: 20,
     }),
   ),
+
+  http.get('*/api/v1/health', () =>
+    HttpResponse.json({ status: 'ok', timestamp: new Date().toISOString() }),
+  ),
 ]
