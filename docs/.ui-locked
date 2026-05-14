@@ -1,0 +1,10 @@
+{
+  "sha": "21635b8f34474fbdace6b91b02fb3d868d860085",
+  "preview_url": "https://jaya-kranthi.github.io/twa-frontend/",
+  "approved_by": "test@test.com",
+  "approved_at": "2026-05-14T12:34:56Z",
+  "mode": "manual",
+  "reason": "",
+  "contract_hash": "a82c5a7bda8c7c4d088a845dac35567e9cf8b773a8ab58d60cd968076314ae0f",
+  "source_artifact_hash": "b4519ed9291ad598d543339767f6c4233a8f172955e3fad10acb658d07472a96"
+}

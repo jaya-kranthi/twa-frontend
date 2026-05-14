@@ -1,0 +1,7 @@
+openapi: 3.1.0
+info:
+  title: TWA Marketplace API
+  version: 0.1.0
+  x-minfy-stub: true
+  description: Stub contract — generated at UI lock before backend exists. Replace with full contract from minfy-ui-contract after MSW handlers are finalized.
+paths: {}
