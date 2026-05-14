@@ -62,13 +62,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: [
-                '## UI Preview Ready',
-                '',
-                `Download the \`ui-preview-pr-${{ github.event.pull_request.number }}\` artifact to review.`,
-                '',
-                'Once approved, trigger the **UI Approval Gate** workflow manually with your email to lock the UI.'
-              ].join('\n')
+              body: '## UI Preview Ready\n\nDownload the ui-preview-pr-${{ github.event.pull_request.number }} artifact to review.\n\nOnce approved, trigger the **UI Approval Gate** workflow manually with your email to lock the UI.'
             })
 
   # ── Approval lock — PR-based to respect branch protection ──────────────────
@@ -128,6 +122,8 @@ jobs:
           # --admin bypasses required status checks — docs/.ui-locked needs no CI
           gh pr merge "$PR_URL" --admin --squash
 
-          # Auto-trigger tech spec + ticket generation
-          gh workflow run post-approval.yml \
-            --field approver="${{ steps.approver.outputs.email }}" 2>/dev/null || true
+          # Notify team — engineer runs tech-spec next; sign-off auto-triggers tickets
+          gh issue create \
+            --title "UI locked — run /minfy:minfy-tech-spec-writer to continue" \
+            --body "UI approved by ${{ steps.approver.outputs.email }}. docs/.ui-locked committed to main. Next: run /minfy:minfy-tech-spec-writer in the project root." \
+            --label "minfy-next-step" 2>/dev/null || true
